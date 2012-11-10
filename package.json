@@ -1,0 +1,9 @@
+{
+ "name":"spies",
+ "version":"0.1.0",
+ "dependencies": {},
+ "repository": "git://github.com/mafintosh/spies",
+ "description":"spy on a running program",
+ "keywords": ["repl","shell","nc"],
+ "author": "Mathias Buus Madsen <mathiasbuus@gmail.com>"
+}
