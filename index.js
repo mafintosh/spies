@@ -5,7 +5,9 @@ var CLEAR = '\u001b[H\u001b[2J';
 
 var noop = function() {};
 
-var Spy = function() {
+var Spy = function(options) {
+	options = options || {};
+
 	this.buffer = '';
 	this.once('pipe', function(stream) {
 		stream.on('error', noop); // ignore errors yo
@@ -13,6 +15,7 @@ var Spy = function() {
 		stream.setEncoding('utf-8');
 	});
 
+	this.tty = options.tty !== false;
 	this.prev = null;
 	this.readable = true;
 	this.writable = true;
@@ -56,11 +59,11 @@ Spy.prototype.finish = function(ended) {
 };
 
 Spy.prototype.log = function(value) {
-	this.emit('data', format(value));
+	this.emit('data', format(value, this.tty));
 };
 
-var spies = function() {
-	var sh = new Spy();
+var spies = function(options) {
+	var sh = new Spy(options);
 	var cmds = [];
 
 	sh.on('newListener', function(name) {
@@ -85,7 +88,7 @@ var spies = function() {
 	return sh;
 };
 
-spies.listen = function(port, onSpy) {
+spies.listen = function(port, onspy) {
 	if (typeof port === 'function') {
 		var server = spies.listen(10101, port);
 		server.once('error', function(err) {
@@ -96,7 +99,7 @@ spies.listen = function(port, onSpy) {
 	return require('net').createServer(function(socket) {
 		var spy = spies();
 		socket.pipe(spy).pipe(spies);
-		onSpy(spy);
+		onspy(spy);
 	});
 };
 
