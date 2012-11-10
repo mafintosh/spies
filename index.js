@@ -35,18 +35,21 @@ Shell.prototype.write = function(data) {
 };
 
 Shell.prototype.end = function() {
-	this.finish('end');
+	this.finish(true);
 };
 
 Shell.prototype.destroy = function() {
-	this.finish('close');
+	this.finish();
 };
 
-Shell.prototype.finish = function(name) {
+Shell.prototype.finish = function(ended) {
 	if (!this.readable) return;
 	this.readable = false;
 	this.writable = false;
-	this.emit(name);
+	if (ended) {
+		this.emit('end');
+	}
+	this.emit('close');
 };
 
 Shell.prototype.log = function(value) {
@@ -54,12 +57,19 @@ Shell.prototype.log = function(value) {
 };
 
 module.exports = function(port, onshell) {
-	net.createServer(function(socket) {
+	if (typeof port === 'function') {
+		var server = module.exports(10101, port);
+
+		server.once('error', function(err) {
+			server.listen(0);
+		});
+		return server;
+	}
+	return net.createServer(function(socket) {
 		var sh = new Shell();
+		var cmds = [];
 
 		socket.pipe(sh).pipe(socket);
-
-		var cmds = [];
 
 		sh.on('newListener', function(name) {
 			cmds.push(name);
