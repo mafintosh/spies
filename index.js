@@ -1,8 +1,6 @@
 var Stream = require('stream');
 var format = require('./format');
 
-var CLEAR = '\u001b[H\u001b[2J';
-
 var noop = function() {};
 
 var Spy = function(options) {
@@ -72,17 +70,6 @@ var spies = function(options) {
 	});
 	sh.on('help', function() {
 		sh.log(cmds);
-	});
-	sh.on('watch', function() {
-		var args = arguments;
-		var watch = setInterval(function() {
-			sh.emit('data', CLEAR);
-			sh.emit.apply(sh, args);
-		}, 1000);
-
-		sh.once('close', function() {
-			clearInterval(watch);
-		});
 	});
 
 	return sh;
