@@ -24,7 +24,7 @@ net.createServer(function(socket) {
 }).listen(9999);
 ```
 
-As you can see `spy` is simply a readable and writable stream so you can pipe to any kind of stream (like a websocket)
+As you can see `spy` is simply a readable and writable stream so you can pipe to any kind of stream transport (like a websocket)
 
 You can use the `spies.listen` helper if you just want to listen using a tcp server
 
