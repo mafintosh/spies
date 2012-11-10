@@ -1,7 +1,7 @@
 var Stream = require('stream');
 var format = require('./format');
 
-var CLEAR = new Buffer('G1tIG1sySg==', 'base64');
+var CLEAR = '\u001b[H\u001b[2J';
 
 var noop = function() {};
 
@@ -9,6 +9,7 @@ var Spy = function() {
 	this.buffer = '';
 	this.once('pipe', function(stream) {
 		stream.on('error', noop); // ignore errors yo
+		if (!stream.setEncoding) return;
 		stream.setEncoding('utf-8');
 	});
 
