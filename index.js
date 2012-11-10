@@ -1,12 +1,11 @@
-var net = require('net');
-var format = require('./format');
 var Stream = require('stream');
+var format = require('./format');
 
 var CLEAR = new Buffer('G1tIG1sySg==', 'base64');
 
 var noop = function() {};
 
-var Shell = function() {
+var Spy = function() {
 	this.buffer = '';
 	this.once('pipe', function(stream) {
 		stream.on('error', noop); // ignore errors yo
@@ -17,9 +16,9 @@ var Shell = function() {
 	this.writable = true;
 };
 
-Shell.prototype.__proto__ = Stream.prototype;
+Spy.prototype.__proto__ = Stream.prototype;
 
-Shell.prototype.write = function(data) {
+Spy.prototype.write = function(data) {
 	var self = this;
 	var messages = (this.buffer+data).split('\n');
 	this.buffer = messages.pop();
@@ -34,15 +33,15 @@ Shell.prototype.write = function(data) {
 	});
 };
 
-Shell.prototype.end = function() {
+Spy.prototype.end = function() {
 	this.finish(true);
 };
 
-Shell.prototype.destroy = function() {
+Spy.prototype.destroy = function() {
 	this.finish();
 };
 
-Shell.prototype.finish = function(ended) {
+Spy.prototype.finish = function(ended) {
 	if (!this.readable) return;
 	this.readable = false;
 	this.writable = false;
@@ -52,46 +51,49 @@ Shell.prototype.finish = function(ended) {
 	this.emit('close');
 };
 
-Shell.prototype.log = function(value) {
+Spy.prototype.log = function(value) {
 	this.emit('data', format(value));
 };
 
-module.exports = function(port, onshell) {
-	if (typeof port === 'function') {
-		var server = module.exports(10101, port);
+var spies = function() {
+	var sh = new Spy();
+	var cmds = [];
 
+	sh.on('newListener', function(name) {
+		if (name in {data:1,close:1,end:1,drain:1,error:1}) return;
+		cmds.push(name);
+	});
+	sh.on('help', function() {
+		sh.log(cmds);
+	});
+	sh.on('watch', function() {
+		var args = arguments;
+		var watch = setInterval(function() {
+			sh.emit('data', CLEAR);
+			sh.emit.apply(sh, args);
+		}, 1000);
+
+		sh.once('close', function() {
+			clearInterval(watch);
+		});
+	});
+
+	return sh;
+};
+
+spies.listen = function(port, onSpy) {
+	if (typeof port === 'function') {
+		var server = spies.listen(10101, port);
 		server.once('error', function(err) {
 			server.listen(0);
 		});
 		return server;
 	}
-	return net.createServer(function(socket) {
-		var sh = new Shell();
-		var cmds = [];
-
-		socket.pipe(sh).pipe(socket);
-
-		sh.on('newListener', function(name) {
-			cmds.push(name);
-		});
-		sh.on('help', function() {
-			sh.log(cmds);
-		});
-		sh.on('watch', function() {
-			var args = arguments;
-			var watch = setInterval(function() {
-				sh.emit('data', CLEAR);
-				sh.emit.apply(sh, args);
-			}, 1000);
-
-			sh.once('close', function() {
-				clearInterval(watch);
-			});
-		});
-
-		onshell(sh);
-	}).listen(port);
+	return require('net').createServer(function(socket) {
+		var spy = spies();
+		socket.pipe(spy).pipe(spies);
+		onSpy(spy);
+	});
 };
-module.exports.sh = function() {
-	return new Shell();
-};
+
+module.exports = spies;

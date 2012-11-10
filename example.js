@@ -1,10 +1,15 @@
 var spies = require('spies');
+var net = require('net');
 
-spies(9999, function(spy) {
-	spy.on('echo', function(value) {
-		spy.log(value);
+net.createServer(function(socket) {
+	var spy = spies();
+
+	spy.on('echo', function() {
+		spy.log(Array.prototype.slice.call(arguments));
 	});
 	spy.on('load-avg', function() {
 		spy.log(require('os').loadavg());
 	});
-});
+
+	socket.pipe(spy).pipe(socket);
+}).listen(9999);
