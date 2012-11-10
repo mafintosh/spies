@@ -13,6 +13,7 @@ var Spy = function() {
 		stream.setEncoding('utf-8');
 	});
 
+	this.prev = null;
 	this.readable = true;
 	this.writable = true;
 };
@@ -30,7 +31,9 @@ Spy.prototype.write = function(data) {
 			if (/^\d+$/.test(item)) return parseInt(item, 10);
 			return item;
 		});
+		message = message[0] === '-' ? self.prev : message;
 		self.emit.apply(self, message);
+		self.prev = message;
 	});
 };
 
