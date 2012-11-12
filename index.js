@@ -87,7 +87,7 @@ spies.listen = function(port, onspy) {
 		var spy = spies();
 		socket.pipe(spy).pipe(spies);
 		onspy(spy);
-	});
+	}).listen(port);
 };
 
 module.exports = spies;

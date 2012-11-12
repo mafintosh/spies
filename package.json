@@ -1,6 +1,6 @@
 {
  "name":"spies",
- "version":"0.1.4",
+ "version":"0.1.5",
  "dependencies": {},
  "repository": "git://github.com/mafintosh/spies",
  "description":"spy on a running program",
