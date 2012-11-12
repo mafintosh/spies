@@ -17,6 +17,8 @@ var Spy = function(options) {
 	this.prev = null;
 	this.readable = true;
 	this.writable = true;
+
+	Stream.call(this);
 };
 
 Spy.prototype.__proto__ = Stream.prototype;
@@ -85,7 +87,7 @@ spies.listen = function(port, onspy) {
 	}
 	return require('net').createServer(function(socket) {
 		var spy = spies();
-		socket.pipe(spy).pipe(spies);
+		socket.pipe(spy).pipe(socket);
 		onspy(spy);
 	}).listen(port);
 };
