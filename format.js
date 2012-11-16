@@ -20,7 +20,7 @@ var format = function(obj, tty) {
 		}
 
 		Object.keys(val).forEach(function(key) {
-			visit(prev ? prev+'.'+key : key, val[key]);
+			visit(prev ? prev+'@'+key : key, val[key]);
 		});
 	};
 
@@ -36,11 +36,11 @@ var format = function(obj, tty) {
 	}, '').replace(/./g, ' ')+' '+color('gray',':')+' ';
 
 	return res.map(function(line) {
-		var prefix = line[0].split('.').map(function(l, i) {
+		var prefix = line[0].split('@').map(function(l, i) {
 			return l === prev[i] ? l.replace(/./g, ' ') : l;
 		}).join('.').replace(/ \. /g, '  ');
 		var suffix = max.slice(-(max.length-line[0].length));
-		prev = line[0].split('.');
+		prev = line[0].split('@');
 		return color('blue', prefix)+suffix+line[1]+'\n';
 	}).join('');
 };
